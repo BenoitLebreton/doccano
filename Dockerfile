@@ -28,6 +28,9 @@ COPY Dockerfile /
 RUN hadolint /Dockerfile
 
 COPY . /doccano
+# RUN mkdir -p /qm-labelling
+COPY ~/qm-labelling /doccano
+RUN ls
 
 WORKDIR /doccano
 RUN tools/ci.sh
@@ -69,6 +72,7 @@ ENV AZURE_APPINSIGHTS_IKEY=""
 
 USER doccano
 WORKDIR /doccano
+
 EXPOSE ${PORT}
 
 CMD ["/doccano/tools/run.sh"]
