@@ -8,17 +8,36 @@ python app/manage.py wait_for_db
 python app/manage.py migrate
 python app/manage.py create_roles
 
-if [[ -n "${ADMIN_USERNAME}" ]] && [[ -n "${ADMIN_EMAIL}" ]] && [[ -n "${ADMIN_PASSWORD}" ]]; then
-  python app/manage.py create_admin --noinput --username="${ADMIN_USERNAME}" --email="${ADMIN_EMAIL}" --password="${ADMIN_PASSWORD}"
-fi
+for varname in ${!ADMIN_USERNAME*}
+do
+    # get suffix
+    export suffix=${varname:14}
+    # Ref to value username
+    declare -n username=${varname/varname}
+    # Ref to value corresponding password
+    export passname=ADMIN_PASSWORD$suffix
+    export password=${!passname}
+    # Ref to corresponding email
+    export emailname=ADMIN_EMAIL$suffix
+    export email=${!emailname}
 
-if [[ -n "${ADMIN_USERNAME2}" ]] && [[ -n "${ADMIN_EMAIL2}" ]] && [[ -n "${ADMIN_PASSWORD2}" ]]; then
-  python app/manage.py create_admin --noinput --username="${ADMIN_USERNAME2}" --email="${ADMIN_EMAIL2}" --password="${ADMIN_PASSWORD2}"
-fi
+    echo $suffix
+    echo $username
+    echo $password
+    echo $email
+    if [[ -n "${username}" ]] && [[ -n "${email}" ]] && [[ -n "${password}" ]]; then
+      python app/manage.py create_admin --noinput --username="${username}" --email="${email}" --password="${password}"
+    fi
+done
 
-if [[ -n "${ADMIN_USERNAME3}" ]] && [[ -n "${ADMIN_EMAIL3}" ]] && [[ -n "${ADMIN_PASSWORD3}" ]]; then
-  python app/manage.py create_admin --noinput --username="${ADMIN_USERNAME3}" --email="${ADMIN_EMAIL3}" --password="${ADMIN_PASSWORD3}"
-fi
+
+
+
+
+
+# if [[ -n "${ADMIN_USERNAME}" ]] && [[ -n "${ADMIN_EMAIL}" ]] && [[ -n "${ADMIN_PASSWORD}" ]]; then
+#   python app/manage.py create_admin --noinput --username="${ADMIN_USERNAME}" --email="${ADMIN_EMAIL}" --password="${ADMIN_PASSWORD}"
+# fi
 
 
 # cd qm-labelling
@@ -33,10 +52,10 @@ fi
 
 
 # git pull https://gitlab.com/quantmetry/qmtools/qm-labelling.git master
-cd qm-labelling
-bash init_demo.sh
+# cd qm-labelling
+# bash init_demo.sh
+#cd ~/doccano
 
-cd ~/doccano
 gunicorn --bind="0.0.0.0:${PORT:-8000}" --workers="${WORKERS:-1}" --pythonpath=app app.wsgi --timeout 300
 
 
