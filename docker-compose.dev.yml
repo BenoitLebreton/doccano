@@ -13,6 +13,7 @@ services:
       ADMIN_EMAIL: "admin@example.com"
       DATABASE_URL: "postgres://doccano:doccano@postgres:5432/doccano?sslmode=disable"
       ALLOW_SIGNUP: "False"
+      DEBUG: "True"
     ports:
       - 8000:8000
     depends_on:
@@ -22,7 +23,7 @@ services:
       - network-frontend
 
   frontend:
-    image: node:13.2.0
+    image: node:13.7.0
     command: ["/src/frontend/dev-nuxt.sh"]
     volumes:
       - .:/src

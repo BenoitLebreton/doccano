@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'polymorphic',
     'webpack_loader',
     'corsheaders',
+    'drf_yasg'
 ]
 
 CLOUD_BROWSER_APACHE_LIBCLOUD_PROVIDER = env('CLOUD_BROWSER_LIBCLOUD_PROVIDER', None)
@@ -145,6 +146,15 @@ AUTHENTICATION_BACKENDS = [
     'social_core.backends.azuread_tenant.AzureADTenantOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+HEADER_AUTH_USER_NAME = env('HEADER_AUTH_USER_NAME', '')
+HEADER_AUTH_USER_GROUPS = env('HEADER_AUTH_USER_GROUPS', '')
+HEADER_AUTH_ADMIN_GROUP_NAME = env('HEADER_AUTH_ADMIN_GROUP_NAME', '')
+HEADER_AUTH_GROUPS_SEPERATOR = env('HEADER_AUTH_GROUPS_SEPERATOR', default=',')
+
+if HEADER_AUTH_USER_NAME and HEADER_AUTH_USER_GROUPS and HEADER_AUTH_ADMIN_GROUP_NAME:
+    MIDDLEWARE.append('server.middleware.HeaderAuthMiddleware')
+    AUTHENTICATION_BACKENDS.append('django.contrib.auth.backends.RemoteUserBackend')
 
 SOCIAL_AUTH_GITHUB_KEY = env('OAUTH_GITHUB_KEY', None)
 SOCIAL_AUTH_GITHUB_SECRET = env('OAUTH_GITHUB_SECRET', None)
@@ -304,6 +314,7 @@ EMAIL_HOST = env('EMAIL_HOST', None)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', None)
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', None)
 EMAIL_PORT = env.int('EMAIL_PORT', 587)
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', 'webmaster@localhost')
 
 if not EMAIL_HOST:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -313,4 +324,5 @@ if DEBUG:
     CORS_ORIGIN_WHITELIST = (
         'http://127.0.0.1:3000',
         'http://0.0.0.0:3000',
+        'http://localhost:3000'
     )

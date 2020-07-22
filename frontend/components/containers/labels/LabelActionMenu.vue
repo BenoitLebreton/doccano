@@ -6,33 +6,37 @@
       @upload="importDialog=true"
       @download="handleDownload"
     />
-    <base-dialog :dialog="createDialog">
+    <v-dialog
+      v-model="createDialog"
+      width="800"
+    >
       <label-creation-form
         :create-label="createLabel"
         :keys="shortkeys"
         @close="createDialog=false"
       />
-    </base-dialog>
-    <base-dialog :dialog="importDialog">
+    </v-dialog>
+    <v-dialog
+      v-model="importDialog"
+      width="800"
+    >
       <label-import-form
-        :import-label="importLabels"
+        :upload-label="uploadLabel"
         @close="importDialog=false"
       />
-    </base-dialog>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
 import ActionMenu from '@/components/molecules/ActionMenu'
-import BaseDialog from '@/components/molecules/BaseDialog'
 import LabelCreationForm from '@/components/organisms/labels/LabelCreationForm'
 import LabelImportForm from '@/components/organisms/labels/LabelImportForm'
 
 export default {
   components: {
     ActionMenu,
-    BaseDialog,
     LabelCreationForm,
     LabelImportForm
   },
@@ -58,7 +62,7 @@ export default {
   },
 
   methods: {
-    ...mapActions('labels', ['createLabel', 'importLabels', 'exportLabels']),
+    ...mapActions('labels', ['createLabel', 'uploadLabel', 'exportLabels']),
     ...mapActions('projects', ['setCurrentProject']),
 
     handleDownload() {

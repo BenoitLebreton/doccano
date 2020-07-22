@@ -16,16 +16,14 @@ import DocumentDeletionButton from '@/components/containers/documents/DocumentDe
 export default {
   layout: 'project',
 
-  middleware: ['check-auth', 'auth', 'check-admin'],
-
   components: {
     DocumentList,
     DocumentActionMenu,
     DocumentDeletionButton
   },
 
-  validate({ params }) {
-    return /^\d+$/.test(params.id)
+  validate({ params, query }) {
+    return /^\d+$/.test(params.id) && /^\d+|$/.test(query.limit) && /^\d+|$/.test(query.offset)
   }
 }
 </script>
