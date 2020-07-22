@@ -28,9 +28,6 @@ COPY Dockerfile /
 RUN hadolint /Dockerfile
 
 COPY . /doccano
-# RUN mkdir -p /qm-labelling
-COPY ~/qm-labelling /doccano
-RUN ls
 
 WORKDIR /doccano
 RUN tools/ci.sh
