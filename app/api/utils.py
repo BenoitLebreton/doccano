@@ -1,7 +1,9 @@
+import base64
 import csv
 import io
 import itertools
 import json
+import mimetypes
 import re
 from collections import defaultdict
 
@@ -217,10 +219,41 @@ class Seq2seqStorage(BaseStorage):
         return annotations
 
 
+class Speech2textStorage(BaseStorage):
+    """Store json for speech2text.
+
+    The format is as follows:
+    {"audio": "data:audio/mpeg;base64,...", "transcription": "こんにちは、世界!"}
+    ...
+    """
+    @transaction.atomic
+    def save(self, user):
+        for data in self.data:
+            for audio in data:
+                audio['text'] = audio.pop('audio')
+            doc = self.save_doc(data)
+            annotations = self.make_annotations(doc, data)
+            self.save_annotation(annotations, user)
+
+    @classmethod
+    def make_annotations(cls, docs, data):
+        annotations = []
+        for doc, datum in zip(docs, data):
+            try:
+                annotations.append({'document': doc.id, 'text': datum['transcription']})
+            except KeyError:
+                continue
+        return annotations
+
+
 class FileParser(object):
 
     def parse(self, file):
         raise NotImplementedError()
+
+    @staticmethod
+    def encode_metadata(data):
+        return json.dumps(data, ensure_ascii=False)
 
 
 class CoNLLParser(FileParser):
@@ -358,7 +391,7 @@ class ExcelParser(FileParser):
             elif len(row) == len(columns) and len(row) >= 2:
                 datum = dict(zip(columns, row))
                 text, label = datum.pop('text'), datum.pop('label')
-                meta = json.dumps(datum)
+                meta = FileParser.encode_metadata(datum)
                 j = {'text': text, 'labels': [label], 'meta': meta}
                 data.append(j)
             else:
@@ -379,12 +412,25 @@ class JSONParser(FileParser):
                 data = []
             try:
                 j = json.loads(line)
-                j['meta'] = json.dumps(j.get('meta', {}))
+                j['meta'] = FileParser.encode_metadata(j.get('meta', {}))
                 data.append(j)
             except json.decoder.JSONDecodeError:
                 raise FileParseException(line_num=i, line=line)
         if data:
             yield data
+
+
+class AudioParser(FileParser):
+    def parse(self, file):
+        file_type, _ = mimetypes.guess_type(file.name, strict=False)
+        if not file_type:
+            raise FileParseException(line_num=1, line='Unable to guess file type')
+
+        audio = base64.b64encode(file.read())
+        yield [{
+            'audio': f'data:{file_type};base64,{audio.decode("ascii")}',
+            'meta': json.dumps({'filename': file.name}),
+        }]
 
 
 class JSONLRenderer(JSONRenderer):
