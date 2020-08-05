@@ -8,14 +8,19 @@ export const state = () => ({
 })
 
 export const getters = {
-  isProjectSelected(state) {
-    return state.selected.length > 0
+  isDeletable(state) {
+    const isProjectAdministrator = project => project.current_users_role.is_project_admin
+    return state.selected.length > 0 && state.selected.every(isProjectAdministrator)
   },
   currentProject(state) {
     return state.current
   },
   getCurrentUserRole(state) {
     return state.current.current_users_role || {}
+  },
+  canViewApproveButton(state) {
+    const role = state.current.current_users_role
+    return role && !role.is_annotator
   },
   getFilterOption(state) {
     if (state.current.project_type === 'DocumentClassification') {
